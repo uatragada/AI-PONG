@@ -42,7 +42,7 @@ export default {
       }
 
       if (request.method === "POST" && url.pathname === "/api/ai-pong/stats") {
-        return handlePostStats(request, env);
+        return await handlePostStats(request, env);
       }
 
       if (request.method === "GET" && url.pathname === "/api/ai-pong/leaderboard") {
@@ -51,15 +51,15 @@ export default {
       }
 
       if (request.method === "POST" && url.pathname === "/api/ai-pong/leaderboard") {
-        return handlePostLeaderboard(request, env);
+        return await handlePostLeaderboard(request, env);
       }
 
       if (request.method === "POST" && url.pathname === "/api/ai-pong/trajectory") {
-        return handleTrajectory(request, env, url);
+        return await handleTrajectory(request, env, url);
       }
 
       if (request.method === "GET" || request.method === "HEAD") {
-        return serveAsset(request, env, usage);
+        return await serveAsset(request, env, usage);
       }
 
       return jsonResponse({ ok: false, error: "Method not allowed" }, 405, env);
