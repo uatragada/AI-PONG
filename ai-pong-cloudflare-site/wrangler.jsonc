@@ -1,0 +1,51 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "ai-pong-cloudflare-site",
+  "main": "src/worker.js",
+  "compatibility_date": "2026-04-08",
+  "observability": {
+    "enabled": true
+  },
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS"
+  },
+  "vars": {
+    "ALLOWED_ORIGIN": "https://your-domain.com",
+    "MAX_UPLOAD_BYTES": "150000",
+    "MAX_SAMPLES_PER_UPLOAD": "700",
+    "MIN_TRAJECTORY_SAMPLES": "120",
+    "MIN_TRAJECTORY_DURATION_MS": "20000",
+    "MIN_INPUT_CHANGES": "4",
+    "MIN_HUMAN_HITS": "1",
+    "MIN_VISIBLE_RATIO": "0.8",
+    "MAX_PONG_SCORE": "7",
+    "LEADERBOARD_LIMIT": "25",
+    "LEADERBOARD_MIN_DURATION_MS": "5000",
+    "USAGE_BUDGET_UNITS": "100000",
+    "USAGE_WINDOW": "monthly",
+    "USAGE_SLOWDOWN_RATIO": "0.65",
+    "USAGE_MAINTENANCE_RATIO": "0.8",
+    "USAGE_BYTES_PER_UNIT": "25000",
+    "USAGE_TRAJECTORY_BASE_UNITS": "1",
+    "USAGE_PLAY_UNITS": "1",
+    "USAGE_LEADERBOARD_UNITS": "1",
+    "USAGE_MIN_SLOWDOWN_MS": "250",
+    "USAGE_MAX_SLOWDOWN_MS": "2500",
+    "USAGE_RETRY_AFTER_SECONDS": "900"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "ai-pong",
+      "database_id": "replace-with-your-d1-database-id"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "TRAINING_BUCKET",
+      "bucket_name": "replace-with-your-r2-bucket-name"
+    }
+  ]
+}
+

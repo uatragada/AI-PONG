@@ -1,0 +1,14 @@
+{
+  "name": "ai-pong-cloudflare-site",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "node --check src/worker.js",
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "verify": "npm run check && wrangler deploy --dry-run"
+  },
+  "devDependencies": {
+    "wrangler": "^4.14.0"
+  }
+}
