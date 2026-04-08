@@ -1,6 +1,6 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
-  "name": "ai-pong-cloudflare-site",
+  "name": "human-pong-trainer",
   "main": "src/worker.js",
   "compatibility_date": "2026-04-08",
   "observability": {
@@ -48,4 +48,3 @@
     }
   ]
 }
-
