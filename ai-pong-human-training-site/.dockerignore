@@ -1,0 +1,8 @@
+node_modules
+data
+*.log
+.server.pid
+.env
+.env.*
+__pycache__
+*.pyc

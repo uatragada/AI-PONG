@@ -1,0 +1,14 @@
+{
+  "name": "ai-pong-human-training-site",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node collector/server.mjs",
+    "check": "node --check collector/server.mjs && node --check web/app.js",
+    "decode": "python scripts/decode_aipong.py data/trajectories --out data/training_samples.jsonl"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1026.0"
+  }
+}

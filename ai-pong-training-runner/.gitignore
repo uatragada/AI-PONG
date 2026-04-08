@@ -1,0 +1,6 @@
+.venv/
+runs/
+downloaded-trajectories/
+__pycache__/
+*.pyc
+*.log

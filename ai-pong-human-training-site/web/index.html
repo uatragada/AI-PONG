@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Pong</title>
+    <link rel="stylesheet" href="/styles.css?v=usage-1" />
+  </head>
+  <body>
+    <main class="site-shell">
+      <section class="play-layout" aria-label="AI Pong evolving bot experience">
+        <aside class="briefing">
+          <p class="eyebrow">AI Pong</p>
+          <h1>Beat it before it learns.</h1>
+          <p class="lede">Play the current bot. Every good match helps shape the next one.</p>
+          <p id="runtime-banner" class="runtime-banner" hidden></p>
+          <form id="player-form" class="player-form" autocomplete="off">
+            <label class="label" for="player-name">Player name</label>
+            <div>
+              <input
+                id="player-name"
+                name="player-name"
+                type="text"
+                maxlength="20"
+                placeholder="Enter your name"
+                aria-describedby="player-status"
+              />
+              <button type="submit">Save</button>
+            </div>
+            <p id="player-status">Set a name to claim the leaderboard.</p>
+          </form>
+        </aside>
+
+        <section class="game-shell" aria-label="Pong game">
+          <div class="stage-topbar" aria-live="polite">
+            <div>
+              <p class="label">Bot generation</p>
+              <p id="status">Loading bot...</p>
+            </div>
+            <div class="score-readout">
+              <p class="label">Score</p>
+              <p id="score">0 pts</p>
+            </div>
+          </div>
+
+          <div class="canvas-frame">
+            <canvas
+              id="pong-canvas"
+              width="900"
+              height="600"
+              tabindex="0"
+              aria-label="Playable Pong game against the evolving bot"
+            ></canvas>
+          </div>
+
+          <p id="training-status" hidden>Collecting good matches</p>
+
+          <div class="actions">
+            <button id="reset-button" type="button">Reset match</button>
+          </div>
+        </section>
+
+        <aside class="field-notes">
+          <div>
+            <p class="label">Controls</p>
+            <p>W/S, arrow keys, or drag with mouse or touch. Press Space to re-serve.</p>
+          </div>
+          <div class="play-count-panel" aria-live="polite">
+            <p class="label">Live plays</p>
+            <p id="play-count">Loading...</p>
+          </div>
+          <div class="leaderboard-panel">
+            <div class="leaderboard-heading">
+              <p class="label">Leaderboard</p>
+              <button id="leaderboard-refresh" type="button">Refresh</button>
+            </div>
+            <ol id="leaderboard-list" class="leaderboard-list" aria-live="polite">
+              <li>Loading scores...</li>
+            </ol>
+            <p id="leaderboard-status" class="leaderboard-status">Top human matches</p>
+          </div>
+        </aside>
+      </section>
+    </main>
+
+    <script type="module" src="/app.js?v=usage-1"></script>
+  </body>
+</html>
