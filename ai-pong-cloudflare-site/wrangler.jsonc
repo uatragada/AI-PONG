@@ -37,14 +37,14 @@
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "ai-pong",
-      "database_id": "replace-with-your-d1-database-id"
+      "database_name": "ai-pong-db",
+      "database_id": "6d33ed5e-894e-4633-a25e-06eeb28d1fbf"
     }
   ],
   "r2_buckets": [
     {
       "binding": "TRAINING_BUCKET",
-      "bucket_name": "replace-with-your-r2-bucket-name"
+      "bucket_name": "ai-pong"
     }
   ]
 }
