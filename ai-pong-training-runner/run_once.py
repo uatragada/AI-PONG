@@ -89,10 +89,10 @@ def load_config(path: Path) -> dict[str, Any]:
 
 def iter_trajectory_files(root: Path) -> list[Path]:
     if root.is_file() and root.suffix == ".aipong":
-        return [root]
+        return [] if "smoke-" in root.name else [root]
     if not root.exists():
         return []
-    return sorted(root.rglob("*.aipong"))
+    return sorted(path for path in root.rglob("*.aipong") if "smoke-" not in path.name)
 
 
 def parse_header(data: bytes, source: Path) -> TrajectoryHeader:
