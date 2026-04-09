@@ -37,8 +37,8 @@ export default {
       }
 
       if (request.method === "GET" && url.pathname === "/api/ai-pong/stats") {
-        const stats = await readPlayStats(env);
-        return jsonResponse({ ok: true, ...stats, usage }, 200, env);
+        const stats = await readStatsSnapshot(env);
+        return jsonResponse({ ok: true, ...stats }, 200, env);
       }
 
       if (request.method === "POST" && url.pathname === "/api/ai-pong/stats") {
@@ -280,6 +280,57 @@ async function getUsageSnapshot(env) {
   return formatUsageSnapshot(env, await readUsageRow(env));
 }
 
+async function readStatsSnapshot(env) {
+  const config = getConfig(env);
+  const now = new Date();
+  const windowKey = getUsageWindowKey(config, now);
+  const row = await env.DB.prepare(
+    `SELECT
+       COALESCE((SELECT plays FROM play_totals WHERE key = 'global'), 0) AS plays,
+       (SELECT updated_at FROM play_totals WHERE key = 'global') AS plays_updated_at,
+       usage.window_key,
+       usage.window,
+       usage.updated_at AS usage_updated_at,
+       usage.used_units,
+       usage.trajectory_uploads,
+       usage.trajectory_bytes,
+       usage.leaderboard_posts,
+       usage.play_registrations
+     FROM (SELECT 1) AS seed
+     LEFT JOIN usage_state AS usage
+       ON usage.window_key = ?1
+     LIMIT 1`
+  ).bind(windowKey).first();
+
+  const usageRow = (!row || row.window !== config.usageWindow)
+    ? {
+        window: config.usageWindow,
+        windowKey,
+        updatedAt: now.toISOString(),
+        usedUnits: 0,
+        trajectoryUploads: 0,
+        trajectoryBytes: 0,
+        leaderboardPosts: 0,
+        playRegistrations: 0,
+      }
+    : {
+        window: row.window,
+        windowKey: row.window_key,
+        updatedAt: row.usage_updated_at,
+        usedUnits: clampNumber(row.used_units, 0, Number.MAX_SAFE_INTEGER),
+        trajectoryUploads: clampNumber(row.trajectory_uploads, 0, Number.MAX_SAFE_INTEGER),
+        trajectoryBytes: clampNumber(row.trajectory_bytes, 0, Number.MAX_SAFE_INTEGER),
+        leaderboardPosts: clampNumber(row.leaderboard_posts, 0, Number.MAX_SAFE_INTEGER),
+        playRegistrations: clampNumber(row.play_registrations, 0, Number.MAX_SAFE_INTEGER),
+      };
+
+  return {
+    plays: clampNumber(row?.plays, 0, Number.MAX_SAFE_INTEGER),
+    updatedAt: row?.plays_updated_at || null,
+    usage: formatUsageSnapshot(env, usageRow),
+  };
+}
+
 async function addUsageUnits(env, kind, bytes = 0) {
   const config = getConfig(env);
   const current = await getUsageSnapshot(env);
@@ -459,9 +510,8 @@ async function handlePostStats(request, env) {
   ).bind(matchKey, now).run();
 
   if (insertResult.meta?.changes === 0) {
-    const stats = await readPlayStats(env);
-    const usage = await getUsageSnapshot(env);
-    return jsonResponse({ ok: true, duplicate: true, ...stats, usage }, 200, env);
+    const stats = await readStatsSnapshot(env);
+    return jsonResponse({ ok: true, duplicate: true, ...stats }, 200, env);
   }
 
   await env.DB.prepare(

@@ -2,8 +2,8 @@ const MODEL_URL = "/models/current-policy.json";
 const LOG_ENDPOINT = "/api/ai-pong/trajectory";
 const LEADERBOARD_ENDPOINT = "/api/ai-pong/leaderboard";
 const STATS_ENDPOINT = "/api/ai-pong/stats";
-const RUNTIME_ENDPOINT = "/api/ai-pong/runtime";
 const PLAYER_NAME_STORAGE_KEY = "ai-pong-player-name";
+const STATS_REFRESH_MS = 60_000;
 
 const SAMPLE_HZ = 10;
 const SAMPLE_INTERVAL = 1 / SAMPLE_HZ;
@@ -375,20 +375,6 @@ function applyRuntimePayload(payload) {
   };
 
   renderRuntimeState();
-}
-
-function loadRuntimeState() {
-  fetch(RUNTIME_ENDPOINT)
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error(`runtime returned ${response.status}`);
-      }
-      return readJsonResponse(response);
-    })
-    .then(applyRuntimePayload)
-    .catch((error) => {
-      console.error(error);
-    });
 }
 
 function loadPlayStats() {
@@ -1116,14 +1102,11 @@ initializePlayerName();
 renderRuntimeState();
 loadLeaderboard();
 loadPlayStats();
-loadRuntimeState();
-setInterval(loadPlayStats, 5000);
-setInterval(loadRuntimeState, 15000);
+setInterval(loadPlayStats, STATS_REFRESH_MS);
 
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible") {
     loadPlayStats();
-    loadRuntimeState();
   }
 });
 
