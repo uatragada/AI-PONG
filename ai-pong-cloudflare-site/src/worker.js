@@ -12,9 +12,8 @@ export default {
         return withHeaders(new Response(null, { status: 204 }), env);
       }
 
-      const usage = await getUsageSnapshot(env);
-
       if (request.method === "GET" && url.pathname === "/api/ai-pong/health") {
+        const usage = await getUsageSnapshot(env);
         return jsonResponse({
           ok: true,
           storageMode: "r2+d1",
@@ -25,15 +24,8 @@ export default {
       }
 
       if (request.method === "GET" && url.pathname === "/api/ai-pong/runtime") {
+        const usage = await getUsageSnapshot(env);
         return jsonResponse({ ok: true, usage }, 200, env);
-      }
-
-      if (usage.mode === "maintenance" && request.method === "POST" && url.pathname.startsWith("/api/ai-pong/")) {
-        return maintenanceJson(usage, env);
-      }
-
-      if (usage.mode === "slow" && shouldSlowRequest(request.method, url.pathname)) {
-        await sleep(usage.slowdownMs);
       }
 
       if (request.method === "GET" && url.pathname === "/api/ai-pong/stats") {
@@ -42,7 +34,7 @@ export default {
       }
 
       if (request.method === "POST" && url.pathname === "/api/ai-pong/stats") {
-        return await handlePostStats(request, env);
+        return await handleUsageControlledRequest(request, env, url.pathname, () => handlePostStats(request, env));
       }
 
       if (request.method === "GET" && url.pathname === "/api/ai-pong/leaderboard") {
@@ -51,15 +43,15 @@ export default {
       }
 
       if (request.method === "POST" && url.pathname === "/api/ai-pong/leaderboard") {
-        return await handlePostLeaderboard(request, env);
+        return await handleUsageControlledRequest(request, env, url.pathname, () => handlePostLeaderboard(request, env));
       }
 
       if (request.method === "POST" && url.pathname === "/api/ai-pong/trajectory") {
-        return await handleTrajectory(request, env, url);
+        return await handleUsageControlledRequest(request, env, url.pathname, () => handleTrajectory(request, env, url));
       }
 
       if (request.method === "GET" || request.method === "HEAD") {
-        return await serveAsset(request, env, usage);
+        return await serveAsset(request, env);
       }
 
       return jsonResponse({ ok: false, error: "Method not allowed" }, 405, env);
@@ -387,6 +379,20 @@ function shouldSlowRequest(method, pathname) {
   return method === "POST" || pathname === "/" || pathname === "/index.html";
 }
 
+async function handleUsageControlledRequest(request, env, pathname, handler) {
+  const usage = await getUsageSnapshot(env);
+
+  if (usage.mode === "maintenance") {
+    return maintenanceJson(usage, env);
+  }
+
+  if (usage.mode === "slow" && shouldSlowRequest(request.method, pathname)) {
+    await sleep(usage.slowdownMs);
+  }
+
+  return handler();
+}
+
 function sleep(ms) {
   if (!ms || ms <= 0) {
     return Promise.resolve();
@@ -463,18 +469,27 @@ function getCacheControlForPath(pathname) {
   return "public, max-age=300";
 }
 
-async function serveAsset(request, env, usage) {
+async function serveAsset(request, env) {
   const url = new URL(request.url);
-  if (usage.mode === "maintenance" && (url.pathname === "/" || url.pathname === "/index.html")) {
-    const maintenanceRequest = new Request(new URL("/maintenance.html", request.url), request);
-    const assetResponse = await env.ASSETS.fetch(maintenanceRequest);
-    return withHeaders(new Response(assetResponse.body, {
-      status: 503,
-      headers: assetResponse.headers,
-    }), env, {
-      "Cache-Control": "no-store",
-      "Retry-After": String(getConfig(env).usageRetryAfterSeconds),
-    });
+
+  if (url.pathname === "/" || url.pathname === "/index.html") {
+    const usage = await getUsageSnapshot(env);
+
+    if (usage.mode === "maintenance") {
+      const maintenanceRequest = new Request(new URL("/maintenance.html", request.url), request);
+      const assetResponse = await env.ASSETS.fetch(maintenanceRequest);
+      return withHeaders(new Response(assetResponse.body, {
+        status: 503,
+        headers: assetResponse.headers,
+      }), env, {
+        "Cache-Control": "no-store",
+        "Retry-After": String(getConfig(env).usageRetryAfterSeconds),
+      });
+    }
+
+    if (usage.mode === "slow" && shouldSlowRequest(request.method, url.pathname)) {
+      await sleep(usage.slowdownMs);
+    }
   }
 
   const assetResponse = await env.ASSETS.fetch(request);
